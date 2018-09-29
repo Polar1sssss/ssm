@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.itcast.mybatis.mapper.UserMapper">
+    <!--定义sql片段
+        id：sql片段的唯一标识
+        经验：基于单表定义sql片段，这样sql可重用性才高
+             在sql片段中，一般不用where
+    -->
+    <sql id="query_user_where" >
+        <if test="userCustom != null">
+            <if test="userCustom.sex != null and userCustom.sex != ''">
+                and user.sex = #{userCustom.sex}
+            </if>
+            <if test="userCustom.username != null and userCustom.username != ''">
+                and username like '%${userCustom.username}%'
+            </if>
+            <if test="ids != null">
+                <!--collection：指定输入对象中的集合属性
+                    item：每个遍历生成的对象名
+                    open：开始遍历时，拼接的串
+                    close:结束遍历时拼接的串
+                    separator：遍历两个对象中间需要拼接的串
+                -->
+                <foreach collection="ids" item="user_id" open="AND (" close=")" separator="or">
+                    id=#{user_id}
+                </foreach>
+            </if>
+        </if>
+    </sql>
+    <!--定义resultMap，将select id id_, username username_ from user和User类中的属性映射
+        type:resultMap最终映射的java对象类型
+        id:对resultMap的唯一标识
+    -->
+    <resultMap type="user" id="userResultMap">
+        <!--
+        id表示查询结果集中的唯一标识
+        column：查询出来的列名
+        property：type指定的pojo类型中的属性名
+        最终resultMap要对column和property作一个映射关系
+        -->
+        <id column="id_" property="id"/>
+        <!--对普通名映射-->
+        <result column="username_" property="username"/>
+    </resultMap>
+
+    <select id="findUserByResultMap" parameterType="int" resultMap="userResultMap">
+        select id id_, username username_ from user where id = #{value}
+    </select>
+
+    <!--传递pojo包装对象-->
+    <select id="findUserList" parameterType="UserQueryVo" resultType="UserCustom">
+        select * from user
+        <where>
+            <!--引用的sql片段-->
+            <!--如果refid指定的id不在本mapper.xml文件中，需要在前边加上namespace-->
+            <include refid="query_user_where"></include>
+        </where>
+    </select>
+
+    <select id="selectUserById" parameterType="int" resultType="cn.itcast.mybatis.po.User">
+        select * from user where id = #{id}
+    </select>
+
+    <select id="selectUserByName" parameterType="java.lang.String" resultType="cn.itcast.mybatis.po.User">
+        select * from user where username like '%${value}%'
+    </select>
+
+    <insert id="insertUser" parameterType="cn.itcast.mybatis.po.User">
+        insert into user(username,birthday,sex,address) values(#{username},#{birthday},#{sex},#{address})
+    </insert>
+
+    <delete id="deleteUser" parameterType="java.lang.Integer">
+        delete from user where id= #{id}
+    </delete>
+
+    <update id="updateUser" parameterType="cn.itcast.mybatis.po.User">
+        update user set username=#{username}, birthday=#{birthday},sex=#{sex},address=#{address} where id=#{id}
+    </update>
+</mapper>
