@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/mvc
+           http://www.springframework.org/schema/mvc/spring-mvc.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <!--实际开发中使用组件扫描handler-->
+    <context:component-scan base-package="cn.itcast.ssm.controller"></context:component-scan>
+
+    <!--配置处理器映射器和适配器注解驱动-->
+    <mvc:annotation-driven conversion-service="conversionService"></mvc:annotation-driven>
+
+    <!--配置拦截器-->
+    <mvc:interceptors>
+        <!--配置登录认证的拦截器-->
+        <mvc:interceptor>
+            <mvc:mapping path="/**" />
+            <bean class="cn.itcast.ssm.interceptor.LoginInterceptor"/>
+        </mvc:interceptor>
+        <!--多个拦截器，顺序执行-->
+        <mvc:interceptor>
+            <!--拦截所有url包括子url-->
+            <mvc:mapping path="/**"/>
+            <bean class="cn.itcast.ssm.interceptor.Interceptor1"/>
+        </mvc:interceptor>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <bean class="cn.itcast.ssm.interceptor.Interceptor2"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+    <!--视图解析器
+        解析jsp，默认使用jstl解析，classpath下需要jstl的jar包-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!--自定义参数绑定，日期类型-->
+    <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <property name="converters">
+            <util:list list-class="java.util.ArrayList">
+                <bean class="cn.itcast.ssm.converter.CustomDateConverter" />
+            </util:list>
+        </property>
+    </bean>
+
+</beans>
